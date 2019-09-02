@@ -92,7 +92,9 @@ function shortcodes(options) {
     return eat(entireShortcode)({
       type: "shortcode",
       identifier: parsedShortcode.identifier,
-      attributes: parsedShortcode.attributes
+      attributes: parsedShortcode.attributes,
+      isClosing: parsedShortcode.isClosing ? true : false,
+      children: parsedShortcode.children ? parsedShortcode.children : null,
     });
   }
   shortcodeTokenizer.locator = locator;
@@ -118,6 +120,11 @@ function shortcodes(options) {
  * @param {string} innerShortcode - Extracted shortcode from between the start & end blocks.
  */
 function parseShortcode(innerShortcode) {
+  var isClosing = false;
+  if (innerShortcode.indexOf('/') === 0) {
+    innerShortcode = innerShortcode.substr(1);
+    isClosing = true;
+  }
   var trimmedInnerShortcode = innerShortcode.trim();
 
   // If no shortcode, it was blank between the blocks - return nothing.
@@ -125,7 +132,11 @@ function parseShortcode(innerShortcode) {
 
   // If no whitespace, then shortcode is just name with no attributes.
   if (!hasWhiteSpace(trimmedInnerShortcode)) {
-    return { identifier: trimmedInnerShortcode, attributes: {} };
+    return { 
+      identifier: trimmedInnerShortcode, 
+      attributes: {}, 
+      isClosing: isClosing 
+    };
   }
 
   var splitShortcode = trimmedInnerShortcode.match(/^(\S+)\s(.*)/).slice(1);
@@ -138,7 +149,8 @@ function parseShortcode(innerShortcode) {
 
   return {
     identifier: shortcodeName,
-    attributes: attributes
+    attributes: attributes,
+    isClosing: isClosing
   };
 }
 
